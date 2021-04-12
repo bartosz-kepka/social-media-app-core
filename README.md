@@ -1,3 +1,17 @@
+Team members:
+
+[Jakub Cywiński](https://github.com/xjakubcywinski)
+
+[Dorota Nowakowska](https://github.com/doritos12)
+
+[Patryk Kaca](https://github.com/Patrykaca)
+
+[Jakub Podwysocki](https://github.com/Topeeerz)
+
+[Bartosz Kępka](https://github.com/bartosz-kepka)
+
+# social-media-app-core
+
 Java JDK 11 required.
 
 Commands for Linux systems while being in project's root directory.
