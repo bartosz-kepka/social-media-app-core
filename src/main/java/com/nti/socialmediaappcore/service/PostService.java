@@ -13,6 +13,7 @@ import java.util.List;
 @Service
 public class PostService {
     private final PostRepository postRepository;
+
     private final ModelMapper modelMapper;
 
     public List<Post> getAllPosts() {
