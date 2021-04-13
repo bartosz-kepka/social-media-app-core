@@ -43,6 +43,8 @@ public class ChatService {
         }
 
         Chat chat = modelMapper.map(newChatDTO, Chat.class);
+        // TODO set creatorId from security context when is available and remove creatorId from NewChatDTO class
+        chat.setId(null); // model mapper bug temporary workaround
         Chat addedChat = chatRepository.insert(chat);
 
         ChatItemDTO addedChatItem = modelMapper.map(addedChat, ChatItemDTO.class);

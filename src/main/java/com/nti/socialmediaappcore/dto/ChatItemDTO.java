@@ -8,5 +8,7 @@ import java.util.Set;
 public class ChatItemDTO {
     private String id;
 
+    private String creatorId;
+
     private Set<String> membersIds;
 }

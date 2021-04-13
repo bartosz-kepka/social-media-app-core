@@ -18,6 +18,8 @@ public class Chat {
     @Id
     private String id;
 
+    private String creatorId;
+
     private Set<String> membersIds;
 
     private List<Message> messages = new ArrayList<>();

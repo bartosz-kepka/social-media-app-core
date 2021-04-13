@@ -9,6 +9,9 @@ import java.util.Set;
 
 @Data
 public class NewChatDTO {
+    // TODO get creatorId from security context when is available and remove this prop
+    private String creatorId;
+
     @NotNull(message = "property membersIds is required")
     @Size(min = 2, message = "Chat must have at least 2 members")
     @ApiModelProperty(required = true, value = "Chat members")
