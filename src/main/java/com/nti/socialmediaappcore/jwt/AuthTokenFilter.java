@@ -1,7 +1,10 @@
 package com.nti.socialmediaappcore.jwt;
 
 
+import com.nti.socialmediaappcore.exception.AuthException;
+import com.nti.socialmediaappcore.exception.DuplicateException;
 import com.nti.socialmediaappcore.service.UserDetailsServiceImpl;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +20,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.text.MessageFormat;
+
 
 public class AuthTokenFilter extends OncePerRequestFilter {
     @Autowired
@@ -24,8 +29,6 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
-
-    private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -43,7 +46,10 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {
-            logger.error("Cannot set user authentication: {}", e);
+            throw new DuplicateException(MessageFormat.format(
+                    "Cannot set user authentication: {}",
+                    e
+            ));
         }
 
         filterChain.doFilter(request, response);
