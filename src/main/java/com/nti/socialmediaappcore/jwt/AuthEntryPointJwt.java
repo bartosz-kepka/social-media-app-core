@@ -16,8 +16,6 @@ public class AuthEntryPointJwt implements AuthenticationEntryPoint {
 
     private static final String EXCEPTION_TEXT = "Unauthorized error";
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthEntryPointJwt.class);
-
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws AuthException {
