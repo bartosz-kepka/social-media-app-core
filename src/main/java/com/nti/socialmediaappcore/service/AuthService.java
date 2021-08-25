@@ -32,9 +32,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 public class AuthService {
+
     private static final String USER_EXISTS = "Error: Username \"{0}\" is already taken!";
     private static final String EMAIL_EXISTS = "Error: Email \"{0}\" is already taken!";
-
 
     @Autowired
     AuthenticationManager authenticationManager;
