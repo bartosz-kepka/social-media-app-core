@@ -1,6 +1,7 @@
 package com.nti.socialmediaappcore.config;
 
 import com.nti.socialmediaappcore.exception.DuplicateException;
+import com.nti.socialmediaappcore.exception.ExistingUserException;
 import com.nti.socialmediaappcore.exception.NotFoundException;
 
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -37,6 +38,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(value = DuplicateException.class)
     public ResponseEntity<Object> handleDuplicateException(DuplicateException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        List<String> messages = List.of(ex.getMessage());
+        Map<String, Object> body = new LinkedHashMap<>(createBody(status, messages));
+        body.put("description", "uri=" + request.getRequestURI());
+
+        return new ResponseEntity<>(body, status);
+    }
+
+    @ExceptionHandler(value = ExistingUserException.class)
+    public ResponseEntity<Object> handleExistingUserException(ExistingUserException ex, HttpServletRequest request) {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         List<String> messages = List.of(ex.getMessage());
         Map<String, Object> body = new LinkedHashMap<>(createBody(status, messages));
