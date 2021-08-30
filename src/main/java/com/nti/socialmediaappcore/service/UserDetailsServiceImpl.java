@@ -3,7 +3,6 @@ package com.nti.socialmediaappcore.service;
 import com.nti.socialmediaappcore.model.User;
 import com.nti.socialmediaappcore.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -17,11 +16,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     @Transactional
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + username));
+    public UserDetailsImpl loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with email: " + email));
 
-        return UserDetailsImpl.build(user);
+        return new UserDetailsImpl(user);
     }
-
 }

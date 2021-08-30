@@ -1,8 +1,6 @@
 package com.nti.socialmediaappcore.exception;
 
-import java.io.IOException;
-
-public class AuthException extends IOException {
+public class AuthException extends RuntimeException {
     public AuthException(String message) {
         super(message);
     }

@@ -3,15 +3,12 @@ package com.nti.socialmediaappcore.controller;
 import javax.validation.Valid;
 
 import com.nti.socialmediaappcore.dto.CredentialsDTO;
-import com.nti.socialmediaappcore.dto.RegistrationDTO;
+import com.nti.socialmediaappcore.dto.LoginDTO;
+import com.nti.socialmediaappcore.dto.RegisterDTO;
 import com.nti.socialmediaappcore.service.AuthService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,13 +17,19 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody CredentialsDTO credentialsDTO) {
-        return authService.authenticateUser(credentialsDTO);
+    @PostMapping("/login")
+    public LoginDTO authenticate(@Valid @RequestBody CredentialsDTO credentialsDTO) {
+        return authService.authenticate(credentialsDTO);
     }
 
-    @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody RegistrationDTO signUpRequest) {
-        return authService.registerUser(signUpRequest);
+    @PostMapping("/register")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void register(@Valid @RequestBody RegisterDTO registerDTO) {
+        authService.register(registerDTO);
+    }
+
+    @PostMapping("/init")
+    public void init() {
+        authService.init();
     }
 }

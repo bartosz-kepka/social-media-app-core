@@ -2,23 +2,17 @@ package com.nti.socialmediaappcore.jwt;
 
 
 import com.nti.socialmediaappcore.exception.AuthException;
-import com.nti.socialmediaappcore.exception.DuplicateException;
-import com.nti.socialmediaappcore.service.UserDetailsImpl;
+import com.nti.socialmediaappcore.model.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.impl.TextCodec;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import java.text.MessageFormat;
 import java.util.Date;
 
 @Component
 public class JwtUtils {
-    private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
-
     @Value("${nti.app.jwtSecret}")
     private String jwtSecret;
 
@@ -27,17 +21,17 @@ public class JwtUtils {
 
     public String generateJwtToken(Authentication authentication) {
 
-        UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
+        User user = (User) authentication.getPrincipal();
 
         return Jwts.builder()
-                .setSubject((userPrincipal.getUsername()))
+                .setSubject((user.getEmail()))
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(SignatureAlgorithm.HS256, TextCodec.BASE64.decode(jwtSecret))
                 .compact();
     }
 
-    public String getUserNameFromJwtToken(String token) {
+    public String getEmailFromJwtToken(String token) {
         return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getSubject();
     }
 
@@ -46,10 +40,7 @@ public class JwtUtils {
             Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken);
             return true;
         } catch (SignatureException | IllegalArgumentException | UnsupportedJwtException | MalformedJwtException | ExpiredJwtException e) {
-            throw new AuthException(MessageFormat.format(
-                    e.getMessage(),
-                    e
-            ));
+            return false;
         }
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
 public class SocialMediaAppCoreApplication {
+
     public static void main(String[] args) {
         SpringApplication.run(SocialMediaAppCoreApplication.class, args);
     }

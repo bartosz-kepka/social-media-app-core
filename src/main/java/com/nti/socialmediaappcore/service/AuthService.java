@@ -1,127 +1,89 @@
 package com.nti.socialmediaappcore.service;
 
-import com.nti.socialmediaappcore.exception.ExistingUserException;
+import com.nti.socialmediaappcore.dto.LoginDTO;
+import com.nti.socialmediaappcore.exception.InvalidCredentialsException;
+import com.nti.socialmediaappcore.exception.RoleNotFoundException;
+import com.nti.socialmediaappcore.exception.UserAlreadyRegistered;
 import com.nti.socialmediaappcore.jwt.JwtUtils;
 import com.nti.socialmediaappcore.model.ERole;
 import com.nti.socialmediaappcore.model.Role;
 import com.nti.socialmediaappcore.model.User;
 import com.nti.socialmediaappcore.dto.CredentialsDTO;
-import com.nti.socialmediaappcore.dto.RegistrationDTO;
-import com.nti.socialmediaappcore.dto.UserDetailsDTO;
+import com.nti.socialmediaappcore.dto.RegisterDTO;
 import com.nti.socialmediaappcore.repository.RoleRepository;
 import com.nti.socialmediaappcore.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
 import java.text.MessageFormat;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
 public class AuthService {
-    private static final String USER_EXISTS = "Error: Username \"{0}\" is already taken!";
-    private static final String EMAIL_EXISTS = "Error: Email \"{0}\" is already taken!";
+    private static final String EMAIL_EXISTS = "There is already a user registered with email " +
+            "\"{0}\"";
+    private static final String USER_ROLE_NOT_FOUND = "User role not found";
+    private static final String INVALID_CREDENTIALS_MESSAGE = "Provided email or password is " +
+            "incorrect";
 
-
-    @Autowired
-    AuthenticationManager authenticationManager;
-
-    @Autowired
     private final UserRepository userRepository;
 
-    @Autowired
     private final RoleRepository roleRepository;
 
-    @Autowired
     private final PasswordEncoder encoder;
 
-    @Autowired
     private final JwtUtils jwtUtils;
 
-    @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody CredentialsDTO credentialsDTO) {
+    public LoginDTO authenticate(@Valid @RequestBody CredentialsDTO credentialsDTO) {
+        User user = userRepository.findByEmailIgnoreCase(credentialsDTO.getEmail())
+                .orElseThrow(() -> new InvalidCredentialsException(INVALID_CREDENTIALS_MESSAGE));
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(credentialsDTO.getUsername(), credentialsDTO.getPassword()));
+        if (!isAuthenticate(credentialsDTO.getPassword(), user.getPassword())) {
+            throw new InvalidCredentialsException(INVALID_CREDENTIALS_MESSAGE);
+        }
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtils.generateJwtToken(authentication);
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(user, credentialsDTO, null);
+        String token = jwtUtils.generateJwtToken(authentication);
 
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        List<String> roles = userDetails.getAuthorities().stream()
-                .map(item -> item.getAuthority())
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(new UserDetailsDTO(jwt,
-                userDetails.getId(),
-                userDetails.getUsername(),
-                userDetails.getEmail(),
-                roles));
+        return new LoginDTO(token, user);
     }
 
-    @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody RegistrationDTO signUpRequest) {
-        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-            throw new ExistingUserException(MessageFormat.format(
-                    USER_EXISTS,signUpRequest.getUsername()));
+    public void register(@Valid @RequestBody RegisterDTO registerDTO) {
+        if (userRepository.existsByEmailIgnoreCase(registerDTO.getEmail())) {
+            throw new UserAlreadyRegistered(MessageFormat.format(
+                    EMAIL_EXISTS, registerDTO.getEmail()));
         }
 
-        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-            throw new ExistingUserException(MessageFormat.format(
-                    EMAIL_EXISTS,signUpRequest.getEmail()));
-        }
-
-        // Create new user's account
-        User user = new User(signUpRequest.getUsername(),
-                signUpRequest.getEmail(),
-                encoder.encode(signUpRequest.getPassword()));
-
-        Set<String> strRoles = signUpRequest.getRoles();
         Set<Role> roles = new HashSet<>();
+        Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+                .orElseThrow(() -> new RoleNotFoundException(USER_ROLE_NOT_FOUND));
+        roles.add(userRole);
 
-        if (strRoles == null) {
-            Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-            roles.add(userRole);
-        } else {
-            strRoles.forEach(role -> {
-                switch (role) {
-                    case "admin":
-                        Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(adminRole);
-
-                        break;
-                    case "mod":
-                        Role modRole = roleRepository.findByName(ERole.ROLE_MODERATOR)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(modRole);
-
-                        break;
-                    default:
-                        Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(userRole);
-                }
-            });
-        }
-
+        User user = new User();
+        user.setEmail(registerDTO.getEmail());
+        user.setPassword(encoder.encode(registerDTO.getPassword()));
+        user.setFirstName(registerDTO.getFirstName());
+        user.setLastName(registerDTO.getLastName());
         user.setRoles(roles);
-        userRepository.save(user);
 
-        return ResponseEntity.ok("User registered successfully!");
+        userRepository.save(user);
+    }
+
+    private boolean isAuthenticate(String providedPassword, String userPassword) {
+        return encoder.matches(providedPassword, userPassword);
+    }
+
+    public void init() {
+        if (roleRepository.findAll().isEmpty()) {
+            roleRepository.insert(new Role(ERole.ROLE_USER));
+            roleRepository.insert(new Role(ERole.ROLE_ADMIN));
+        }
     }
 }

@@ -1,9 +1,6 @@
 package com.nti.socialmediaappcore.config;
 
-import com.nti.socialmediaappcore.exception.AuthException;
-import com.nti.socialmediaappcore.exception.DuplicateException;
-import com.nti.socialmediaappcore.exception.ExistingUserException;
-import com.nti.socialmediaappcore.exception.NotFoundException;
+import com.nti.socialmediaappcore.exception.*;
 
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
@@ -28,43 +25,39 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(value = NotFoundException.class)
-    public ResponseEntity<Object> handleNotFoundException(NotFoundException ex, HttpServletRequest request) {
-        HttpStatus status = HttpStatus.NOT_FOUND;
-        List<String> messages = List.of(ex.getMessage());
-        Map<String, Object> body = new LinkedHashMap<>(createBody(status, messages));
-        body.put("description", "uri=" + request.getRequestURI());
-
-        return new ResponseEntity<>(body, status);
+    public ResponseEntity<Object> handleNotFoundException(NotFoundException ex,
+                                                          HttpServletRequest request) {
+        return handleCustomException(ex, HttpStatus.NOT_FOUND, request);
     }
 
     @ExceptionHandler(value = DuplicateException.class)
-    public ResponseEntity<Object> handleDuplicateException(DuplicateException ex, HttpServletRequest request) {
-        HttpStatus status = HttpStatus.BAD_REQUEST;
-        List<String> messages = List.of(ex.getMessage());
-        Map<String, Object> body = new LinkedHashMap<>(createBody(status, messages));
-        body.put("description", "uri=" + request.getRequestURI());
-
-        return new ResponseEntity<>(body, status);
+    public ResponseEntity<Object> handleDuplicateException(DuplicateException ex,
+                                                           HttpServletRequest request) {
+        return handleCustomException(ex, HttpStatus.BAD_REQUEST, request);
     }
 
-    @ExceptionHandler(value = ExistingUserException.class)
-    public ResponseEntity<Object> handleExistingUserException(ExistingUserException ex, HttpServletRequest request) {
-        HttpStatus status = HttpStatus.BAD_REQUEST;
-        List<String> messages = List.of(ex.getMessage());
-        Map<String, Object> body = new LinkedHashMap<>(createBody(status, messages));
-        body.put("description", "uri=" + request.getRequestURI());
+    @ExceptionHandler(value = UserAlreadyRegistered.class)
+    public ResponseEntity<Object> handleUserAlreadyRegistered(UserAlreadyRegistered ex,
+                                                              HttpServletRequest request) {
+        return handleCustomException(ex, HttpStatus.BAD_REQUEST, request);
+    }
 
-        return new ResponseEntity<>(body, status);
+    @ExceptionHandler(value = RoleNotFoundException.class)
+    public ResponseEntity<Object> handleRoleNotFoundException(RoleNotFoundException ex,
+                                                              HttpServletRequest request) {
+        return handleCustomException(ex, HttpStatus.INTERNAL_SERVER_ERROR, request);
+    }
+
+    @ExceptionHandler(value = InvalidCredentialsException.class)
+    public ResponseEntity<Object> handleInvalidCredentialsException(InvalidCredentialsException ex,
+                                                              HttpServletRequest request) {
+        return handleCustomException(ex, HttpStatus.BAD_REQUEST, request);
     }
 
     @ExceptionHandler(value = AuthException.class)
-    public ResponseEntity<Object> handleAuthEntryPointJwtException(AuthException ex, HttpServletRequest request) {
-        HttpStatus status = HttpStatus.BAD_REQUEST;
-        List<String> messages = List.of(ex.getMessage());
-        Map<String, Object> body = new LinkedHashMap<>(createBody(status, messages));
-        body.put("description", "uri=" + request.getRequestURI());
-
-        return new ResponseEntity<>(body, status);
+    public ResponseEntity<Object> handleAuthEntryPointJwtException(AuthException ex,
+                                                                   HttpServletRequest request) {
+        return handleCustomException(ex, HttpStatus.BAD_REQUEST, request);
     }
 
     @NonNull
@@ -92,5 +85,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 "status", status.value(),
                 "error", status.getReasonPhrase(),
                 "message", errors);
+    }
+
+    private ResponseEntity<Object> handleCustomException(RuntimeException ex,
+                                                         HttpStatus status,
+                                                         HttpServletRequest request) {
+        List<String> messages = List.of(ex.getMessage());
+        Map<String, Object> body = new LinkedHashMap<>(createBody(status, messages));
+        body.put("description", "uri=" + request.getRequestURI());
+        return new ResponseEntity<>(body, status);
     }
 }

@@ -5,27 +5,26 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Set;
-
 import javax.validation.constraints.*;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RegistrationDTO {
-    @NotBlank
-    @Size(min = 3, max = 20)
-    private String username;
-
+public class RegisterDTO {
     @NotBlank
     @Size(max = 50)
     @Email
     private String email;
 
-    private Set<String> roles;
-
     @NotBlank
-    @Size(min = 6, max = 40)
+    @Size(min = 6, max = 50)
     private String password;
 
+    @NotBlank
+    @Size(max = 50)
+    private String firstName;
+
+    @NotBlank
+    @Size(max = 50)
+    private String lastName;
 }
