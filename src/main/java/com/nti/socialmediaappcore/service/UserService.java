@@ -1,15 +1,11 @@
 package com.nti.socialmediaappcore.service;
 
-import com.nti.socialmediaappcore.dto.LoginDTO;
-import com.nti.socialmediaappcore.exception.InvalidCredentialsException;
-import com.nti.socialmediaappcore.exception.RoleNotFoundException;
-import com.nti.socialmediaappcore.exception.UserAlreadyRegistered;
+import com.nti.socialmediaappcore.dto.*;
+import com.nti.socialmediaappcore.exception.*;
 import com.nti.socialmediaappcore.jwt.JwtUtils;
 import com.nti.socialmediaappcore.model.ERole;
 import com.nti.socialmediaappcore.model.Role;
 import com.nti.socialmediaappcore.model.User;
-import com.nti.socialmediaappcore.dto.CredentialsDTO;
-import com.nti.socialmediaappcore.dto.RegisterDTO;
 import com.nti.socialmediaappcore.model.UserIdentity;
 import com.nti.socialmediaappcore.repository.RoleRepository;
 import com.nti.socialmediaappcore.repository.UserIdentityRepository;
@@ -21,9 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.text.MessageFormat;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Service
@@ -33,6 +27,8 @@ public class UserService {
     private static final String USER_ROLE_NOT_FOUND = "User role not found";
     private static final String INVALID_CREDENTIALS_MESSAGE = "Provided email or password is " +
             "incorrect";
+    private static final String NO_ACCESS = "You don't have access to this resource";
+    private static final String NOT_FOUND = "Resource does not exists";
 
     private final UserRepository userRepository;
 
@@ -88,6 +84,28 @@ public class UserService {
 
     public Set<UserIdentity> getUserIdentitiesByIds(Set<String> ids) {
         return userIdentityRepository.findAllBy_idIn(ids);
+    }
+
+    public User editUser(EditUserDTO editUserDTO, String userId) {
+        String currentUserId = getCurrentUserId();
+        if (!Objects.equals(userId, currentUserId)) {
+            throw new NoAccessException(NO_ACCESS);
+        }
+
+        User user = findUserById(userId);
+        user.setFirstName(editUserDTO.getFirstName());
+        user.setLastName(editUserDTO.getLastName());
+        user.setDescription(editUserDTO.getDescription());
+
+        return userRepository.save(user);
+    }
+
+    public UserDTO getUser(String userId) {
+        return new UserDTO(findUserById(userId));
+    }
+
+    private User findUserById(String userId) {
+        return userRepository.findById(userId).orElseThrow(() -> new NotFoundException(NOT_FOUND));
     }
 
     private boolean isAuthenticate(String providedPassword, String userPassword) {
