@@ -1,7 +1,6 @@
 package com.nti.socialmediaappcore.jwt;
 
 
-import com.nti.socialmediaappcore.exception.AuthException;
 import com.nti.socialmediaappcore.model.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.impl.TextCodec;
@@ -24,7 +23,8 @@ public class JwtUtils {
         User user = (User) authentication.getPrincipal();
 
         return Jwts.builder()
-                .setSubject((user.getEmail()))
+                .setSubject(user.getId())
+                .setIssuer(user.getEmail())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(SignatureAlgorithm.HS256, TextCodec.BASE64.decode(jwtSecret))
@@ -32,10 +32,14 @@ public class JwtUtils {
     }
 
     public String getEmailFromJwtToken(String token) {
+        return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getIssuer();
+    }
+
+    public String getIdFromJwtToken(String token) {
         return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getSubject();
     }
 
-    public boolean validateJwtToken(String authToken) throws AuthException {
+    public boolean validateJwtToken(String authToken) {
         try {
             Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken);
             return true;

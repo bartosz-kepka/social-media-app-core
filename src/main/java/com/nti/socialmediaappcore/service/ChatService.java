@@ -98,7 +98,7 @@ public class ChatService {
         chat.getMessages().add(message);
 
         Message addedMessage = chatRepository.save(chat).getMessages().get(Integer.parseInt(message.getId()));
-        socketIOService.emitNewMessage(chatId, addedMessage);
+        socketIOService.emitNewMessage(addedMessage, chatId, chat.getMembersIds());
 
         return addedMessage;
     }
