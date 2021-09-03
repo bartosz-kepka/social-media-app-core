@@ -5,7 +5,7 @@ import javax.validation.Valid;
 import com.nti.socialmediaappcore.dto.CredentialsDTO;
 import com.nti.socialmediaappcore.dto.LoginDTO;
 import com.nti.socialmediaappcore.dto.RegisterDTO;
-import com.nti.socialmediaappcore.service.AuthService;
+import com.nti.socialmediaappcore.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -15,21 +15,21 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final AuthService authService;
+    private final UserService userService;
 
     @PostMapping("/login")
     public LoginDTO authenticate(@Valid @RequestBody CredentialsDTO credentialsDTO) {
-        return authService.authenticate(credentialsDTO);
+        return userService.authenticate(credentialsDTO);
     }
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public void register(@Valid @RequestBody RegisterDTO registerDTO) {
-        authService.register(registerDTO);
+        userService.register(registerDTO);
     }
 
     @PostMapping("/init")
     public void init() {
-        authService.init();
+        userService.init();
     }
 }

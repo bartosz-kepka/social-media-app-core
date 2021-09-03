@@ -50,13 +50,25 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(value = InvalidCredentialsException.class)
     public ResponseEntity<Object> handleInvalidCredentialsException(InvalidCredentialsException ex,
-                                                              HttpServletRequest request) {
+                                                                    HttpServletRequest request) {
         return handleCustomException(ex, HttpStatus.BAD_REQUEST, request);
     }
 
     @ExceptionHandler(value = AuthException.class)
     public ResponseEntity<Object> handleAuthEntryPointJwtException(AuthException ex,
                                                                    HttpServletRequest request) {
+        return handleCustomException(ex, HttpStatus.BAD_REQUEST, request);
+    }
+
+    @ExceptionHandler(value = NoAccessException.class)
+    public ResponseEntity<Object> handleNoAccessException(NoAccessException ex,
+                                                          HttpServletRequest request) {
+        return handleCustomException(ex, HttpStatus.UNAUTHORIZED, request);
+    }
+
+    @ExceptionHandler(value = BadRequestException.class)
+    public ResponseEntity<Object> badRequestException(BadRequestException ex,
+                                                          HttpServletRequest request) {
         return handleCustomException(ex, HttpStatus.BAD_REQUEST, request);
     }
 
