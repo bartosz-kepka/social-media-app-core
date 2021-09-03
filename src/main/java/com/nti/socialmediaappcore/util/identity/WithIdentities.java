@@ -7,11 +7,11 @@ import java.util.Set;
 
 @Data
 public class WithIdentities<T> {
-    private T data;
+    private T payload;
     private Set<UserIdentity> userIdentities;
 
-    public WithIdentities(T data, Set<UserIdentity> userIdentities) {
-        this.data = data;
+    public WithIdentities(T payload, Set<UserIdentity> userIdentities) {
+        this.payload = payload;
         this.userIdentities = userIdentities;
     }
 }
