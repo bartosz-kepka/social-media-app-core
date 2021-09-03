@@ -8,9 +8,6 @@ import javax.validation.constraints.NotBlank;
 
 @Data
 public class NewMessageDTO {
-    // TODO get senderId from security context when is available and remove this prop
-    private String senderId;
-
     @NotBlank(message = "message content cannot be blank or null")
     @ApiModelProperty(required = true, value = "Message content", example = "This is a test message content")
     @Length(max = 1024, message = "Message content cannot be longer than 1024 characters")

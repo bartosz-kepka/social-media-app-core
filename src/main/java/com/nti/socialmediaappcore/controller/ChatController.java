@@ -6,6 +6,7 @@ import com.nti.socialmediaappcore.dto.NewMessageDTO;
 import com.nti.socialmediaappcore.model.Chat;
 import com.nti.socialmediaappcore.model.Message;
 import com.nti.socialmediaappcore.service.ChatService;
+import com.nti.socialmediaappcore.util.identity.WithIdentities;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -23,17 +24,17 @@ public class ChatController {
 
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
-    public Chat addChat(@RequestBody @Valid NewChatDTO newChatDTO) {
+    public WithIdentities<Chat> addChat(@RequestBody @Valid NewChatDTO newChatDTO) {
         return chatService.addChat(newChatDTO);
     }
 
     @GetMapping
-    public List<ChatItemDTO> getChatItems() {
+    public WithIdentities<List<ChatItemDTO>> getChatItems() {
         return chatService.getChatItems();
     }
 
     @GetMapping("/{chatId}")
-    public Chat getChat(@PathVariable String chatId) {
+    public WithIdentities<Chat> getChat(@PathVariable String chatId) {
         return chatService.getChat(chatId);
     }
 

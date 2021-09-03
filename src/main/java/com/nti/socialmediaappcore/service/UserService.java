@@ -10,22 +10,24 @@ import com.nti.socialmediaappcore.model.Role;
 import com.nti.socialmediaappcore.model.User;
 import com.nti.socialmediaappcore.dto.CredentialsDTO;
 import com.nti.socialmediaappcore.dto.RegisterDTO;
+import com.nti.socialmediaappcore.model.UserIdentity;
 import com.nti.socialmediaappcore.repository.RoleRepository;
+import com.nti.socialmediaappcore.repository.UserIdentityRepository;
 import com.nti.socialmediaappcore.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
-import javax.validation.Valid;
 import java.text.MessageFormat;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @RequiredArgsConstructor
 @Service
-public class AuthService {
+public class UserService {
     private static final String EMAIL_EXISTS = "There is already a user registered with email " +
             "\"{0}\"";
     private static final String USER_ROLE_NOT_FOUND = "User role not found";
@@ -36,11 +38,13 @@ public class AuthService {
 
     private final RoleRepository roleRepository;
 
+    private final UserIdentityRepository userIdentityRepository;
+
     private final PasswordEncoder encoder;
 
     private final JwtUtils jwtUtils;
 
-    public LoginDTO authenticate(@Valid @RequestBody CredentialsDTO credentialsDTO) {
+    public LoginDTO authenticate(CredentialsDTO credentialsDTO) {
         User user = userRepository.findByEmailIgnoreCase(credentialsDTO.getEmail())
                 .orElseThrow(() -> new InvalidCredentialsException(INVALID_CREDENTIALS_MESSAGE));
 
@@ -55,7 +59,7 @@ public class AuthService {
         return new LoginDTO(token, user);
     }
 
-    public void register(@Valid @RequestBody RegisterDTO registerDTO) {
+    public void register(RegisterDTO registerDTO) {
         if (userRepository.existsByEmailIgnoreCase(registerDTO.getEmail())) {
             throw new UserAlreadyRegistered(MessageFormat.format(
                     EMAIL_EXISTS, registerDTO.getEmail()));
@@ -66,14 +70,24 @@ public class AuthService {
                 .orElseThrow(() -> new RoleNotFoundException(USER_ROLE_NOT_FOUND));
         roles.add(userRole);
 
-        User user = new User();
-        user.setEmail(registerDTO.getEmail());
-        user.setPassword(encoder.encode(registerDTO.getPassword()));
-        user.setFirstName(registerDTO.getFirstName());
-        user.setLastName(registerDTO.getLastName());
-        user.setRoles(roles);
+        User user = new User(registerDTO, encoder.encode(registerDTO.getPassword()), roles);
+        User createdUser = userRepository.save(user);
+        UserIdentity userIdentity = new UserIdentity(createdUser);
+        userIdentityRepository.save(userIdentity);
+    }
 
-        userRepository.save(user);
+    public List<UserIdentity> getUserIdentitiesByFullNameContains(String fullName) {
+        return userIdentityRepository.findAllByFullNameContainingIgnoreCase(fullName);
+    }
+
+    public String getCurrentUserId() {
+        UserDetailsImpl userDetails =
+                (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return userDetails.getId();
+    }
+
+    public Set<UserIdentity> getUserIdentitiesByIds(Set<String> ids) {
+        return userIdentityRepository.findAllBy_idIn(ids);
     }
 
     private boolean isAuthenticate(String providedPassword, String userPassword) {

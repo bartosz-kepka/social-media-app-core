@@ -6,6 +6,7 @@ import java.util.Set;
 import javax.validation.constraints.Email;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.nti.socialmediaappcore.dto.RegisterDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -33,4 +34,14 @@ public class User {
 
     @DBRef
     private Set<Role> roles = new HashSet<>();
+
+    public User(RegisterDTO registerDTO,
+                String encodedPassword,
+                Set<Role> roles) {
+        this.email = registerDTO.getEmail();
+        this.password = encodedPassword;
+        this.firstName = registerDTO.getFirstName();
+        this.lastName = registerDTO.getLastName();
+        this.roles = roles;
+    }
 }

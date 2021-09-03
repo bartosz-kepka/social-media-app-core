@@ -4,8 +4,8 @@ import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.nti.socialmediaappcore.dto.ChatItemDTO;
 import com.nti.socialmediaappcore.dto.socket.SocketNewMessageDTO;
-import com.nti.socialmediaappcore.model.Chat;
 import com.nti.socialmediaappcore.model.Message;
+import com.nti.socialmediaappcore.util.identity.WithIdentities;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -44,7 +44,7 @@ public class SocketIOService {
         socketIOServer.start();
     }
 
-    public void emitNewChat(ChatItemDTO chatItemDTO) {
+    public void emitNewChat(WithIdentities<ChatItemDTO> chatItemDTO) {
         this.socketIOServer.getBroadcastOperations().sendEvent(TOPICS.NEW_CHAT, chatItemDTO);
     }
 

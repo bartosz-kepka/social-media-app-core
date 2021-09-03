@@ -1,9 +1,10 @@
 package com.nti.socialmediaappcore.model;
 
+import com.nti.socialmediaappcore.util.identity.WithUserIds;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import nonapi.io.github.classgraph.json.Id;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.ArrayList;
@@ -14,7 +15,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Document(collection = "chats")
-public class Chat {
+public class Chat implements WithUserIds {
     @Id
     private String id;
 
@@ -23,4 +24,15 @@ public class Chat {
     private Set<String> membersIds;
 
     private List<Message> messages = new ArrayList<>();
+
+    public Chat(String creatorId,
+                Set<String> membersIds) {
+        this.creatorId = creatorId;
+        this.membersIds = membersIds;
+    }
+
+    @Override
+    public Set<String> getUserIds() {
+        return membersIds;
+    }
 }
