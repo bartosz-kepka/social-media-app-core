@@ -6,17 +6,15 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.nti.socialmediaappcore.dto.ChatItemDTO;
 import com.nti.socialmediaappcore.dto.socket.SocketNewMessageDTO;
-import com.nti.socialmediaappcore.dto.socket.SocketPostReactionDTO;
+import com.nti.socialmediaappcore.dto.socket.SocketNewReactionDTO;
 import com.nti.socialmediaappcore.jwt.JwtUtils;
 import com.nti.socialmediaappcore.model.Message;
-import com.nti.socialmediaappcore.model.Reactions;
 import com.nti.socialmediaappcore.util.identity.WithIdentities;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.HashMap;
 import java.util.Set;
 import java.util.UUID;
 
@@ -80,9 +78,8 @@ public class SocketIOService {
         emitEventToGivenUsers(TOPICS.NEW_MESSAGE, socketNewMessageDTO, membersIds);
     }
 
-    public void emitReaction(String postId, HashMap<String, Reactions.reaction> reactions){
-        SocketPostReactionDTO reactionDTO = new SocketPostReactionDTO(postId, reactions);
-        this.socketIOServer.getBroadcastOperations().sendEvent(TOPICS.NEW_POST_REACTION, reactionDTO);
+    public void emitNewReaction(WithIdentities<SocketNewReactionDTO> newReactionDTO) {
+        broadcastEvent(TOPICS.NEW_POST_REACTION, newReactionDTO);
     }
 
     public void stop() {
